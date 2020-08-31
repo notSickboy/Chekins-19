@@ -1,0 +1,11 @@
+package com.example.chekins_19
+
+enum class Errores {
+    NO_HAY_RED,
+    HTTP_ERROR,
+    NO_HAY_APP_DE_FOURSQUARE,
+    NO_HAY_CONEXION_DE_FOURSQUARE,
+    ERROR_INTERCAMBIO_TOKEN,
+    ERROR_AL_GUARDAR_TOKEN,
+    PERMISO_NEGADO
+}

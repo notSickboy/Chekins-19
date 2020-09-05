@@ -3,18 +3,23 @@ package com.example.chekins_19
 import android.content.Intent
 import android.provider.Contacts
 import androidx.appcompat.app.AppCompatActivity
+import com.example.chekins_19.Mensaje.Companion.mensaje_error
 import com.foursquare.android.nativeoauth.FoursquareOAuth
+import com.google.gson.Gson
 
 class Foursquare(var activity: AppCompatActivity, var activity_destino:AppCompatActivity) {
 
     private var CODIGO_DE_CONEXION = 200
     private var CODIGO_DE_INTERCAMBIO_DE_TOKEN = 201
 
-    private val CLIENT_ID = ""
-    private val CLIENT_SECRET = ""
+    private val CLIENT_ID = "NV4EFYHCJFWVWNDQXFKA3AVUHPOCNIBM1K2J4CTF4RTAB0AQ"
+    private val CLIENT_SECRET = "MFTSMQTABJXEEQWBJ0KOPBSGJZGQRFHUQIEKPPEUAAW1MWEZ"
 
     private val SETTINGS = "settings"
     private val ACCESS_TOKEN = "accessToken"
+
+    private val URL_BASE = "https://api.foursquare.com/v2/"
+    private val VERSION = "v=20180117"
 
     init {
 
@@ -31,7 +36,7 @@ class Foursquare(var activity: AppCompatActivity, var activity_destino:AppCompat
         }
     }
 
-    private fun validarActivityResult(requestCode:Int, resultCode:Int, data:Intent?){
+        fun validarActivityResult(requestCode:Int, resultCode:Int, data:Intent?){
         when(requestCode){
             CODIGO_DE_CONEXION->{ conexionCompleta(resultCode, data) }
 
@@ -64,8 +69,9 @@ class Foursquare(var activity: AppCompatActivity, var activity_destino:AppCompat
             val accesToken = respuestaToken.accessToken
             if(!guardarToken(accesToken)){
                 Mensaje.mensaje_error(activity.applicationContext, Errores.ERROR_AL_GUARDAR_TOKEN)
+            }else{
+                navegarSiguienteActividad(activity_destino)
             }
-            navegarSiguienteActividad(activity_destino)
         }else{
             Mensaje.mensaje_error(activity.applicationContext, Errores.ERROR_INTERCAMBIO_TOKEN)
         }
@@ -102,5 +108,36 @@ class Foursquare(var activity: AppCompatActivity, var activity_destino:AppCompat
     private fun navegarSiguienteActividad(activityDest: AppCompatActivity){
         activity.startActivity(Intent(this.activity, activityDest::class.java))
         activity.finish()
+    }
+
+    fun obtenerVenues(lat:String,lon:String, obtenerVenuesInterface: ObtenerVenuesInterface){
+        val network = Network(activity)
+        val seccion = "venues/"
+        val metodo = "search/"
+        val ll = "ll=" + lat + "," + lon
+        val token = "oauth_token=" + obtenerToken()
+        val url = URL_BASE + seccion + metodo + "?" + ll + "&" + token + "&" + VERSION
+        network.solicitud_http(activity.applicationContext,url, object :HttpResponse{
+            override fun http_response_success(response: String) {
+                var gson = Gson()
+                var objetoRespuesta = gson.fromJson(response, FoursquareAPIRequestVenues::class.java)
+
+                var meta = objetoRespuesta.meta
+                var venues = objetoRespuesta.response?.venues!!
+
+                if(meta?.code == 200){
+                    // Mandar un mensaje de que se completó el query correctamente
+                    obtenerVenuesInterface.venuesGenerados(venues)
+                }else{
+                    if(meta?.code == 400){
+                        // Mostrar problema al usuario
+                        Mensaje.mensaje_error(activity.applicationContext,meta?.errorDetail)
+                    }else{
+                        // Mostrar mensaje genérico
+                        Mensaje.mensaje_error(activity.applicationContext,Errores.ERROR_QUERY)
+                    }
+                }
+            }
+        })
     }
 }

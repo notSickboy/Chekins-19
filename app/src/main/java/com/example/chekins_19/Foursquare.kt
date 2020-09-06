@@ -2,6 +2,7 @@ package com.example.chekins_19
 
 import android.content.Intent
 import android.provider.Contacts
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.chekins_19.Mensaje.Companion.mensaje_error
 import com.foursquare.android.nativeoauth.FoursquareOAuth
@@ -13,7 +14,7 @@ class Foursquare(var activity: AppCompatActivity, var activity_destino:AppCompat
     private var CODIGO_DE_INTERCAMBIO_DE_TOKEN = 201
 
     private val CLIENT_ID = "NV4EFYHCJFWVWNDQXFKA3AVUHPOCNIBM1K2J4CTF4RTAB0AQ"
-    private val CLIENT_SECRET = "MFTSMQTABJXEEQWBJ0KOPBSGJZGQRFHUQIEKPPEUAAW1MWEZ"
+    private val CLIENT_SECRET = "J2R2RYPCHF3SEROGAKNUWO5WE4YV05TXNJYDGWWHEFMW3KIL"
 
     private val SETTINGS = "settings"
     private val ACCESS_TOKEN = "accessToken"
@@ -46,13 +47,14 @@ class Foursquare(var activity: AppCompatActivity, var activity_destino:AppCompat
 
     private fun conexionCompleta(resultCode: Int, data: Intent?){
         val codigo_de_respuesta = FoursquareOAuth.getAuthCodeFromResult(resultCode, data)
-        val exception = codigo_de_respuesta.exception
+        var exception = codigo_de_respuesta.exception
 
         if(exception == null){
             val codigo = codigo_de_respuesta.code
             realizarIntercambioToken(codigo)
         }else{
-            Mensaje.mensaje_error(activity.applicationContext, Errores.NO_HAY_CONEXION_DE_FOURSQUARE)
+          //  Mensaje.mensaje_error(activity.applicationContext, Errores.NO_HAY_CONEXION_DE_FOURSQUARE)
+            Toast.makeText(activity.applicationContext,codigo_de_respuesta.exception.toString(),Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -113,7 +115,7 @@ class Foursquare(var activity: AppCompatActivity, var activity_destino:AppCompat
     fun obtenerVenues(lat:String,lon:String, obtenerVenuesInterface: ObtenerVenuesInterface){
         val network = Network(activity)
         val seccion = "venues/"
-        val metodo = "search/"
+        val metodo = "search"
         val ll = "ll=" + lat + "," + lon
         val token = "oauth_token=" + obtenerToken()
         val url = URL_BASE + seccion + metodo + "?" + ll + "&" + token + "&" + VERSION
